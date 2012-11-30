@@ -7,10 +7,12 @@ require 'pedant'
 require 'pedant/opensource/platform'
 require 'pedant/multitenant'
 require 'pedant/organization'
+require 'pedant/oc_chef_command_line'
 
 Pedant.config.platform_class = Pedant::MultiTenantPlatform
 Pedant.config.suite = "api"
-Pedant.setup(ARGV)
+
+Pedant.setup(ARGV, ["core_options", "api_options", "oc_chef_options"] )
 puts Pedant::UI.new.info_banner
 
 exit RSpec::Core::Runner.run(Pedant.config.rspec_args)

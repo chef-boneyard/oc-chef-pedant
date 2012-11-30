@@ -1,15 +1,16 @@
-require 'pedant/platform'
 
+require 'pedant/platform'
 module Pedant
   class MultiTenantPlatform < Platform
 
     GLOBAL_OBJECTS = ['users', 'organizations']
 
-    attr_reader :test_org, :test_org_owner, :validate_org
+    attr_reader :test_org, :test_org_owner, :validate_org, :internal_server
 
     def initialize(server, superuser_key_file, super_user_name='pivotal')
       super(server, superuser_key_file, super_user_name)
       @test_org = org_from_config
+      @internal_server = Pedant::Config.internal_server || (fail "Missing internal_server in Pedant config.")
     end
 
     # Intelligently construct a complete API URL based on the
@@ -22,6 +23,15 @@ module Pedant
       path_prefix = "/organizations/#{org.name}"
       slash = path_fragment.start_with?('/') ? '' : '/'
       "#{server}#{path_prefix}#{slash}#{path_fragment}"
+    end
+
+    # Construct a complete API URL for internal APIs that are not typically exposed
+    # via the public-facing load balancers.   Other than the server itself,
+    # behaves the same as api_url
+    def internal_api_url(path_fragment = '/', org=test_org)
+      path_prefix = "/organizations/#{org.name}"
+      slash = path_fragment.start_with?('/') ? '' : '/'
+      "#{internal_server}#{path_prefix}#{slash}#{path_fragment}"
     end
 
     def setup(requestors=Pedant::Config.requestors)
@@ -276,6 +286,7 @@ module Pedant
         add_user_to_group(org.name, user, group)
       end
     end
+
 
     ################################################################################
     # Config-Aware Operations
