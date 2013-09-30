@@ -558,11 +558,12 @@ describe "opscode-account containers", :containers do
       end
     end # context DELETE /containers/<name>
 
-    context "PUT /containers/<name>" do
+
+    context "PUT /containers/<name>", :focus=>true do
       context "permissions" do
         let(:new_container_payload) {{
             "containername" => test_container,
-            "containerpath" => "/new/path"
+            "containerpath" => test_container
           }}
 
         let(:modified_container_body) { new_container_payload }
@@ -658,7 +659,7 @@ describe "opscode-account containers", :containers do
       context "updating containers" do
         let(:new_container_payload) {{
             "containername" => test_container,
-            "containerpath" => "/new/path"
+            "containerpath" => test_container,
           }}
 
         let(:modified_container_body) { new_container_payload }
@@ -668,7 +669,7 @@ describe "opscode-account containers", :containers do
 
           let(:new_container_payload) {{
               "containername" => new_container_name,
-              "containerpath" => "/new/path"
+              "containerpath" => new_container_name
             }}
 
           let(:modified_container_body) { new_container_payload }
