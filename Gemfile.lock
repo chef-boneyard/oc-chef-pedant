@@ -17,7 +17,7 @@ GIT
 
 GIT
   remote: git://github.com/opscode/rest-client.git
-  revision: cd6a6aa3d1062e12120e7b61ece36e26f408d91c
+  revision: 86b23f166576aa6b0294c23e0c8fdfcf08668edc
   branch: ma/ipv6
   specs:
     rest-client (1.7.0.alpha)
