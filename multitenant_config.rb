@@ -46,6 +46,12 @@ chef_server "https://#{`hostname -f`.strip}"
 # poll for a period to ensure they are querying committed results.
 search_server "http://localhost:8983"
 
+# Some tests expect access erchef server directly, instead of routing through 
+# LB.  
+#
+internal_server "http://localhost:8000"
+
+
 # Related to the 'search_server' parameter, this specifies the maximum
 # amout of time (in seconds) that search endpoint requests should be
 # retried before giving up.  If not explicitly set, it will default to
