@@ -7,7 +7,6 @@ require 'pedant'
 require 'pedant/opensource/platform'
 require 'pedant/multitenant'
 require 'pedant/organization'
-require 'pedant/oc_internal_account'
 
 Pedant.config.platform_class = Pedant::MultiTenantPlatform
 Pedant.config.suite = "api"

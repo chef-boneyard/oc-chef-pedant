@@ -169,11 +169,7 @@ describe "/organizations", :organizations do
   # Internal account tests #
   ##########################
 
-  describe "POST /internal-organizations", :'internal-account', :pending => true do
-    pending("TODO: /internal-organizations tests currently state behind" \
-            "since there is no InternalOrganizations delete endpoint," \
-            "it should probably only be run in dev-vm")
-
+  describe "POST /internal-organizations", :internal_orgs do
     let(:orgname)      { "precreated-#{Time.now.to_i}-#{Process.pid}" }
     let(:request_body) do
       {
@@ -189,14 +185,16 @@ describe "/organizations", :organizations do
 
     context "when creating a new org" do
       it "should respond with a valid newly created organization" do
-        authenticated_request(:POST, "#{platform.internal_account_url}/internal-organizations", superuser,
-          :payload => request_body).should look_like(
+        request = authenticated_request(:POST, "#{platform.internal_account_url}/internal-organizations",
+          superuser, :payload => request_body)
+
+        request.should look_like(
             :body => {
               "clientname" => "#{orgname}-validator",
-              "uri" => "#{platform.internal_account_url}/internal-organizations/orgname"
             },
             :status => 201
         )
+        request.should have_key("uri")
       end
     end
 
@@ -217,10 +215,7 @@ describe "/organizations", :organizations do
 
   end
 
-  describe "PUT /internal-organizations", :'internal-account', :pending => true do
-    pending("TODO: /internal-organizations tests currently state behind" \
-            "since there is no InternalOrganizations delete endpoint," \
-            "it should probably only be run in dev-vm")
+  describe "PUT /internal-organizations", :internal_orgs do
 
     let(:orgname) { "precreated-#{Time.now.to_i}-#{Process.pid}" }
     let(:post_request_body) do
@@ -249,13 +244,9 @@ describe "/organizations", :organizations do
       it "should update the organization's unassigned field" do
         # since there is no way of actually getting the assigned field back from the API that I know of
         # best tests I can think of
-        authenticated_request(:PUT, "#{platform.internal_account_url}/internal-organizations/#{orgname}",
-          superuser, :payload => put_request_body).should look_like(
-            :status => 200,
-            :body => {
-              "uri" => "#{platform.internal_account_url}/internal-organizations/#{orgname}"
-            }
-        )
+        request = authenticated_request(:PUT,"#{platform.internal_account_url}/internal-organizations/#{orgname}",          superuser, :payload => put_request_body)
+        request.should look_like(:status => 200)
+        request.should have_key("uri")
 
         get("#{platform.server}/organizations/ponyville", superuser).should look_like(
           :body => {
