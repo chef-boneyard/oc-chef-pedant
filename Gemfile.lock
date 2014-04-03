@@ -1,9 +1,9 @@
 GIT
   remote: git://github.com/opscode/chef-pedant.git
-  revision: 2d91278a92affcb463d957a464eabf3508da5938
-  branch: tc/add-additional-options
+  revision: 734c287bc15d08f91cf9f1ba6b62eeae04296fe0
+  tag: 1.0.25
   specs:
-    chef-pedant (1.0.24)
+    chef-pedant (1.0.25)
       activesupport (~> 3.2.8)
       erubis (~> 2.7.0)
       mixlib-authentication (~> 1.3.0)
