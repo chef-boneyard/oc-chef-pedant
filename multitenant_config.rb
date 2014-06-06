@@ -70,6 +70,15 @@ maximum_search_time 65
 # value.
 include_internal false
 
+# LDAP Testing, see the README.md for additional details
+
+# Set to true if you wish do LDAP testing on authenticate_user and system_recovery tests
+ldap_testing false
+# If ldap_testing is true, change this to your AD samAccountName (i.e., my login name) for your test server
+ldap_account_name "placeholder"
+# I ldap_testing is true, change this to your current AD password for your test server
+ldap_account_password "foobar"
+
 # Test users.  The five users specified below are required; their
 # names (:user, :non_org_user, etc.) are indicative of their role
 # within the tests.  All users must have a ':name' key.  If they have

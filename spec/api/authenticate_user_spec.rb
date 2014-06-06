@@ -10,28 +10,23 @@ describe 'authenticate_user' do
     ruby? ? 404 : 405
   end
 
-  let (:username) { platform.non_admin_user.name }
-  let (:password) { 'foobar' }
+  let (:username) {
+    if Pedant::Config.ldap_testing
+      Pedant::Config.ldap_account_name
+    else
+      platform.non_admin_user.name
+    end
+  }
+
+  let (:password) {
+    if Pedant::Config.ldap_testing
+      Pedant::Config.ldap_account_password
+    else
+      'foobar'
+    end
+  }
+
   let (:request_url) { "#{platform.server}/authenticate_user" }
-
-  # For testing against LDAP, I made the following changes:
-  #
-  # changed :username above to my AD samAccountName (i.e., my login name)
-  # changed :password above to my current AD password
-  #
-  # The following were all added to the private-chef.rb (run a pcc reconfigure after,
-  # and change out the <abstracted> bits since those don't need to be made public
-  # (no password for yuo, and if you need it, you should be able to get the IP):
-  #
-  # ldap['base_dn'] = 'dc=opscodecorp,dc=com'
-  # ldap['bind_dn'] = 'CN=<full name>,OU=Employees,OU=Domain users,DC=opscodecorp,DC=com'
-  # ldap['bind_password'] = '<same password as above>'
-  # ldap['host'] = '<host IP address>'
-  #
-  # This is good enough for quick ad-hoc testing, it will authenticate against my
-  # username/password in the tests, but more robust LDAP testing is desirable in
-  # the future.
-
   let (:body) { { 'username' => username, 'password' => password } }
   let (:response_body) { {
       'status' => 'linked',
@@ -73,11 +68,11 @@ describe 'authenticate_user' do
           :status => invalid_verb_response_code
         })
     end
-      
+
   end # 'GET /authenticate_user'
 
   context 'PUT /authenticate_user' do
-      
+
     it 'returns 404 ("Not Found") for superuser' do
       put(request_url, superuser, :payload => body).should look_like({
           :status => invalid_verb_response_code
@@ -256,7 +251,7 @@ describe 'authenticate_user' do
 
     context 'with empty password' do
       let (:password) { "" }
- 
+
       it 'superuser returns 400 ("Bad Request")' do
         post(request_url, superuser, :payload => body).should look_like({
             :status => 400
@@ -433,6 +428,6 @@ describe 'authenticate_user' do
           :status => invalid_verb_response_code
         })
     end
-      
+
   end # 'DELETE /authenticate_user'
 end # describe 'authenticate_user'

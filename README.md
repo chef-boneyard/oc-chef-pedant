@@ -36,6 +36,26 @@ for details.
 
 There are some tests that only make sense to run in certain environments or that don't make sense to run by default.
 
+#### LDAP Testing
+
+For testing against LDAP, please update the entries in multitenant_config.rb. Set `ldap_testing` to true,
+and fill in `ldap_account_name` and `ldap_account_password` with your AD credentials on your test server.
+
+Additionally, set the following in your private-chef.rb file, run `private-chef-ctl reconfigure`,
+and change out the <abstracted> bits since those don't need to be made public (no password for you,
+and if you need it, you should be able to get the IP):
+
+```
+ldap['base_dn'] = 'dc=opscodecorp,dc=com'
+ldap['bind_dn'] = 'CN=<full name>,OU=Employees,OU=Domain users,DC=opscodecorp,DC=com'
+ldap['bind_password'] = '<same password as above>'
+ldap['host'] = '<host IP address>'
+```
+
+This is good enough for quick ad-hoc testing, it will authenticate against my
+username/password in the tests, but more robust LDAP testing is desirable in
+the future.
+
 #### Account Tests That Talk Via Internal Ports
 
 The opscode-account endpoint for internal org creation and updating (```/internal-organizations```) communicates via the internal account port. That endpoint is not exposed via the external-lb. Therefore, they will fail when kicking off the tests from a point external to the lb (say, developer's laptop hitting hosted for pedant). However, they are useful in validating that these endpoint are still functioning, so if you are running pedant somewhere with access to the internal-lb, simply run
