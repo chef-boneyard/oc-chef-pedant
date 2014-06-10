@@ -38,23 +38,14 @@ There are some tests that only make sense to run in certain environments or that
 
 #### LDAP Testing
 
-For testing against LDAP, please update the entries in multitenant_config.rb. Set `ldap_testing` to true,
-and fill in `ldap_account_name` and `ldap_account_password` with your AD credentials on your test server.
+WARNING: Do not perform this testing on a production environment as it interacts with actual LDAP credentials.
 
-Additionally, set the following in your private-chef.rb file, run `private-chef-ctl reconfigure`,
-and change out the <abstracted> bits since those don't need to be made public (no password for you,
-and if you need it, you should be able to get the IP):
+You will need LDAP running on your EC test server with a valid LDAP user. Follow the instructions here to get LDAP running with EC http://docs.opscode.com/server_ldap.html.
 
-```
-ldap['base_dn'] = 'dc=opscodecorp,dc=com'
-ldap['bind_dn'] = 'CN=<full name>,OU=Employees,OU=Domain users,DC=opscodecorp,DC=com'
-ldap['bind_password'] = '<same password as above>'
-ldap['host'] = '<host IP address>'
-```
+Please update the entries in multitenant_config.rb. Set `ldap_testing` to true,
+and fill in ldap({}) with your LDAP credentials a user on the test server you pointed EC at above.
 
-This is good enough for quick ad-hoc testing, it will authenticate against my
-username/password in the tests, but more robust LDAP testing is desirable in
-the future.
+This is good enough for quick ad-hoc testing, but we should develop better LDAP integration tests in the future.
 
 #### Account Tests That Talk Via Internal Ports
 

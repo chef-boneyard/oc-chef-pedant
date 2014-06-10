@@ -3,41 +3,50 @@
 # Author:: Tyler Cloke (<tyler@getchef.com>)
 # Copyright:: Copyright (c) 2014 Chef, Inc.
 
+# TODO: there is no LDAP testing here because to
+# accurately simulate the real use case, we would need
+# the chef-server pedant is running on to be LDAP configured,
+# and we would want that LDAP server to be down.
+#
+# This is too intergration-test-ish for pedant, but it is a case
+# we should be testing. It'd be great if our CI test spun up an
+# AD server, then configured and ran these tests with an LDAP user.
+#
+# LDAP status is not expected to affect this endpoint in any way
+# but we would obviously want to test the server in a state we
+# actually expect to see when this endpoint would be used in the real world.
+#
+# Basically what I'm saying is we should have integration testing and
+# that pedant is the wrong place to do such an infrastructure / service-interactive test.
 describe 'system_recovery' do
-  # TODO: do we wanna be able to test on actual LDAP user?
-  # let (:username) {
-  #   if Pedant::Config.ldap_testing
-  #     Pedant::Config.ldap_account_name
-  #   else
-  #     platform.non_admin_user.name
-  #   end
-  # }
-  # let (:password) {
-  #   if Pedant::Config.ldap_testing
-  #     Pedant::Config.ldap_account_password
-  #   else
-  #     'foobar'
-  #   end
-  # }
 
-  let(:recoverable_user_id) { "#{Time.now.to_i}-#{Process.pid}" }
+  let(:external_auth_id) {
+    "#{Time.now.to_i}-#{Process.pid}"
+  }
 
-  let(:recoverable_username) { "recoverable_user-#{recoverable_user_id}" }
+  let(:username) {
+    "recoverable_user-#{external_auth_id}"
+  }
 
-  let(:recoverable_user_create_body) do
+  let(:password) {
+    "foobar"
+  }
+
+  let(:create_body) do
     {
-      display_name: recoverable_username,
-      email: "#{recoverable_username}@getchef.com",
-      password: "foobar",
-      username: recoverable_username,
-      external_auth_id: recoverable_user_id,
+      display_name: username,
+      email: "#{username}@getchef.com",
+      password: password,
+      username: username,
+      external_auth_id: external_auth_id,
       recovery_authentication_enabled: true
     }
   end
 
-  let (:recoverable_user_body) {
-    { 'username' => recoverable_username,
-      'password' => "foobar"
+  let (:user_body) {
+    {
+      'username' => username,
+      'password' => password
     }
   }
 
@@ -45,12 +54,12 @@ describe 'system_recovery' do
 
   # create a new recovery_authentication_enabled:true user
   before :each do
-    post("#{platform.server}/users", superuser, :payload => recoverable_user_create_body)
+    post("#{platform.server}/users", superuser, :payload => create_body)
   end
 
   # delete the user after test
   after :each do
-    delete("#{platform.server}/users/#{recoverable_username}", superuser)
+    delete("#{platform.server}/users/#{username}", superuser)
   end
 
   describe "POST /system_recovery" do
@@ -60,11 +69,11 @@ describe 'system_recovery' do
       context "when the superuser is the requestor" do
 
         it "should return the user body" do
-          post(request_url, superuser, :payload => recoverable_user_body).should look_like(
+          post(request_url, superuser, :payload => user_body).should look_like(
             :body => {
-              "display_name" => recoverable_username,
-              "username" => recoverable_username,
-              "email" => "#{recoverable_username}@getchef.com",
+              "display_name" => username,
+              "username" => username,
+              "email" => "#{username}@getchef.com",
               "recovery_authentication_enabled" => true
             },
             :status => 200
@@ -73,8 +82,8 @@ describe 'system_recovery' do
       end # when the superuser is the requestor
 
       context "when the pasword passed is incorrect" do
-        let (:wrong_pw_recoverable_user_body) {
-          { 'username' => recoverable_username,
+        let (:wrong_pw_user_body) {
+          { 'username' => username,
             'password' => "wrong_password"
           }
         }
@@ -87,9 +96,9 @@ describe 'system_recovery' do
 
           pending 'atrocious error message from opscode-account, see comment'
 
-          post(request_url, superuser, :payload => wrong_pw_recoverable_user_body).should look_like(
+          post(request_url, superuser, :payload => wrong_pw_user_body).should look_like(
             :body => {
-              "error" => "Failed to authenticated as #{recoverable_username}. Password passed is incorrect."
+              "error" => "Failed to authenticated as #{username}. Password passed is incorrect."
             },
             :status => 401
           )
@@ -104,7 +113,7 @@ describe 'system_recovery' do
 
           pending 'opscode-account prints the user from the request body in error message and not requestor'
 
-          post(request_url, platform.admin_user, :payload => recoverable_user_body).should look_like(
+          post(request_url, platform.admin_user, :payload => user_body).should look_like(
             :body => {
               "error" => "#{platform.admin_user.name} not authorized for verify_password"
             },
@@ -117,9 +126,9 @@ describe 'system_recovery' do
 
     context "when a user has recovery_authentication_enabled != true is requested by the superuser" do
 
-      let(:unrecoverable_user_id) { "#{Time.now.to_i}-#{Process.pid}" }
+      let(:unrecoverable_external_auth_id) { "#{Time.now.to_i}-#{Process.pid}" }
 
-      let(:unrecoverable_username) { "unrecoverable_user-#{recoverable_user_id}" }
+      let(:unrecoverable_username) { "unrecoverable_user-#{unrecoverable_external_auth_id}" }
 
       let(:unrecoverable_user_create_body) do
         {
@@ -127,7 +136,7 @@ describe 'system_recovery' do
           email: "#{unrecoverable_username}@getchef.com",
           password: "foobar",
           username: unrecoverable_username,
-          external_auth_id: unrecoverable_user_id,
+          external_auth_id: unrecoverable_external_auth_id,
           recovery_authentication_enabled: false
         }
       end
@@ -162,12 +171,15 @@ describe 'system_recovery' do
 
     context "when a user that does not exist is requested by the superuser" do
 
-      before :each do
-        delete("#{platform.server}/users/#{recoverable_username}", superuser)
-      end
+      let (:user_body) {
+        {
+          'username' => 'this_user_does_not_exist',
+          'password' => password
+        }
+      }
 
       it "should return 404 with an error message" do
-        post(request_url, superuser, :payload => recoverable_user_body).should look_like(
+        post(request_url, superuser, :payload => user_body).should look_like(
           :body => {
             "error" => "User is not found in the system"
           },
@@ -198,7 +210,7 @@ describe 'system_recovery' do
 
       let (:missing_username_body) {
         {
-          "username" => recoverable_username
+          "username" => username
         }
       }
 

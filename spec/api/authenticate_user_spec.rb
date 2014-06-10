@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'pedant/rspec/common'
+require 'json'
 
 describe 'authenticate_user' do
   def self.ruby?
@@ -11,16 +12,16 @@ describe 'authenticate_user' do
   end
 
   let (:username) {
-    if Pedant::Config.ldap_testing
-      Pedant::Config.ldap_account_name
+    if platform.ldap_testing
+      platform.ldap[:account_name]
     else
       platform.non_admin_user.name
     end
   }
 
   let (:password) {
-    if Pedant::Config.ldap_testing
-      Pedant::Config.ldap_account_password
+    if platform.ldap_testing
+      platform.ldap[:account_password]
     else
       'foobar'
     end
@@ -28,17 +29,39 @@ describe 'authenticate_user' do
 
   let (:request_url) { "#{platform.server}/authenticate_user" }
   let (:body) { { 'username' => username, 'password' => password } }
-  let (:response_body) { {
-      'status' => 'linked',
-      'user' => {
-        'first_name' => platform.non_admin_user.name,
-        'last_name' => platform.non_admin_user.name,
-        'display_name' => platform.non_admin_user.name,
-        'email' => platform.non_admin_user.name + "@opscode.com",
-        'username' => platform.non_admin_user.name
-      }} }
+  let (:response_body) do
+    if platform.ldap_testing
+      {
+        'status' => platform.ldap[:status],
+        'user' => {
+          'first_name' => platform.ldap[:first_name],
+          'last_name' => platform.ldap[:last_name],
+          'display_name' => platform.ldap[:display_name],
+          'email' => platform.ldap[:email],
+          'username' => platform.ldap[:account_name],
+          'city' => platform.ldap[:city],
+          'country' => platform.ldap[:country],
+          'external_authentication_uid' => platform.ldap[:account_name],
+          'recovery_authentication_enabled' => platform.ldap[:recovery_authentication_enabled],
+        }
+      }
+    else
+      {
+        'status' => 'linked',
+        'user' => {
+          'first_name' => platform.non_admin_user.name,
+          'last_name' => platform.non_admin_user.name,
+          'display_name' => platform.non_admin_user.name,
+          'email' => platform.non_admin_user.name + "@opscode.com",
+          'username' => platform.non_admin_user.name
+        }
+      }
+    end
+  end
+
   let (:authentication_error_msg) {
-    "Failed to authenticate: Username and password incorrect" }
+    "Failed to authenticate: Username and password incorrect"
+  }
 
   context 'GET /authenticate_user' do
 
@@ -135,10 +158,21 @@ describe 'authenticate_user' do
       let (:username) { "kneelbeforezod" }
 
       it 'superuser returns 401 ("Unauthorized")', :smoke do
-        post(request_url, superuser, :payload => body).should look_like({
+        # the exact error is very dependant on how LDAP is configured, so its hard to test
+        # for something exact
+        if platform.ldap_testing
+          response = post(request_url, superuser, :payload => body)
+          response.should look_like({
+            :status => 401
+          })
+          /^Failed to authenticate: Could not locate a record with distinguished name/.should match(JSON.parse(response)["error"])
+        else
+          response.post(request_url, superuser, :payload => body)
+          response.should look_like({
             :status => 401,
             :body_exact => {'error' => authentication_error_msg}
           })
+        end
       end
 
       it 'admin/different user returns 403 ("Forbidden")' do
