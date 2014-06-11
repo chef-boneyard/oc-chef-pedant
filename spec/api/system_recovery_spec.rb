@@ -21,8 +21,7 @@
 describe 'system_recovery' do
 
   let(:external_auth_id) {
-    "#{Time.now.to_i}-#{Process.pid}"
-  }
+    "#{Time.now.to_i}-#{Process.pid}"  }
 
   let(:username) {
     "recoverable_user-#{external_auth_id}"
@@ -173,7 +172,7 @@ describe 'system_recovery' do
 
       let (:user_body) {
         {
-          'username' => 'this_user_does_not_exist',
+          'username' => 'this_user_does_not_exist-#{Time.now.to_i}-#{Process.pid}',
           'password' => password
         }
       }
