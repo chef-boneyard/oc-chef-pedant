@@ -111,6 +111,8 @@ describe 'system_recovery' do
       context "when a non-superuser is the requestor" do
 
         if (ruby?)
+          # The error strings returns the user in the body and not the requestor
+          # user in opscode-account
           let (:error_message) {
             "#{platform.admin_user.name} not authorized for verify_password"
           }
@@ -126,8 +128,6 @@ describe 'system_recovery' do
           }
         end
 
-        # TODO: the error strings returns the user in the body and not the
-        # requestor user in opscode-account
         it "should return 403 with an error explaining non-superuser is not authorized" do
 
           post(request_url, platform.admin_user, :payload => user_body).should look_like(
@@ -184,8 +184,6 @@ describe 'system_recovery' do
 
       it "should return 403 with a relevant error message" do
         post(request_url, superuser, :payload => unrecoverable_user_body).should look_like(
-          # TODO: this error isn't quite terrible enough to mark test as pending,
-          # but it should be "Requestor" not "User"
           :body => { "error" => error_message },
           :status => 403
         )
