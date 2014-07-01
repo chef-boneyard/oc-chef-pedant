@@ -344,6 +344,31 @@ describe 'authenticate_user', :users do
       end
     end
 
+    context 'with an invalid username' do
+      let(:username) { "bob@nowhere.com" }
+      it 'superuser returns 400 ("Bad Request")' do
+        pending "front end components need awareness of this before we turn it on" do
+          post(request_url, superuser, :payload => body).should look_like({
+              :status => 400
+            })
+        end
+      end
+      it 'admin/different user returns 400 ("Bad Request")' do
+        pending "front end components need awareness of this before we turn it on" do
+          post(request_url, platform.admin_user, :payload => body).should look_like({
+              :status => 400
+            })
+        end
+      end
+      it 'non-admin/same user returns 400 ("Bad Request")' do
+        pending "front end components need awareness of this before we turn it on" do
+          post(request_url, platform.non_admin_user, :payload => body).should look_like({
+              :status => 400
+            })
+        end
+      end
+    end
+
     context 'with empty password' do
       let(:password) { "" }
 
