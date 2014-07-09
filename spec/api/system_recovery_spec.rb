@@ -18,7 +18,7 @@
 #
 # Basically what I'm saying is we should have integration testing and
 # that pedant is the wrong place to do such an infrastructure / service-interactive test.
-describe 'system_recovery' do
+describe 'system_recovery', :focus do
   def self.ruby?
     false
   end
@@ -206,14 +206,14 @@ describe 'system_recovery' do
       else
         let (:error_message) {
           # TODO: is this really the right error message?
-          ["Field 'username' invalid"]
+          ["System recovery disabled for this user"]
         }
       end
 
       it "should return 404 with an error message" do
         post(request_url, superuser, :payload => user_body).should look_like(
           :body => { "error" => error_message },
-          :status => ruby? ? 404 : 400
+          :status => ruby? ? 404 : 403
         )
       end # should return 404 with an error message
     end # when a user that does not exist is requested by the superuser
