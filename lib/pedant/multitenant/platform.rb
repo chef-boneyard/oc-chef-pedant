@@ -256,15 +256,19 @@ module Pedant
     end
 
     def associate_user_with_org(orgname, user)
+      # TODO under ruby, we need to use the old invite/accept method,
+      # while under erchef we will need to use the new POST method.
       puts "Associating user #{user.name} with org #{orgname} ..."
-      payload = { "user" => user.name }
-      association_requests_url = "#{@server}/organizations/#{orgname}/association_requests"
+      payload = { "username" => user.name }
+      association_requests_url = "#{@server}/organizations/#{orgname}/users"
       r = post("#{association_requests_url}",  superuser, :payload => payload)
 
-      if r.code == 201 # Created
-        association_id = parse(r)["uri"].split("/").last
-        r = put("#{@server}/users/#{user.name}/association_requests/#{association_id}", user, :payload => { "response" => "accept" })
-      elsif r.code == 409 && parse(r)["error"] == "The association already exists."
+      case r.code
+      when 201, 200
+        # Awesome
+      when 409
+        # TODO I suspect we should fail here - nobody should be
+        # trying to associate the same user more than once. But for now:
         # No problem!
       else
         raise "Bad response #{r.code} from association_requests: #{r}"
