@@ -1,4 +1,4 @@
-# oc-chef-pedant
+ # oc-chef-pedant
 This is the pedant test suite for Chef Server.
 
 ## License
