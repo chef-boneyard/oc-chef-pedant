@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/opscode/chef-pedant.git
-  revision: d1d93c2afb1788f36e236a25302661c79ace8da7
+  revision: 5100265a1c6148f4d6640a19eb03d1b39d8b1d62
   branch: keys-api-GET
   specs:
     chef-pedant (1.0.44)
