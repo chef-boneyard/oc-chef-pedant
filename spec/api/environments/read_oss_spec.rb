@@ -72,7 +72,6 @@ describe "Environments API Endpoint", :environments do
       should_respond_with 200, 'and an index of all the available environments'
     end
 
-    skip 'GET /environments open-source permissions', :platform => :open_source
   end # GET /environments
 
 

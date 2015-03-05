@@ -16,7 +16,7 @@
 require 'pedant/rspec/knife_util'
 
 
-describe 'knife', knife: true, skip: !open_source? do
+describe 'knife', :knife do
   context 'cookbook' do
     context 'upload' do
       include Pedant::RSpec::KnifeUtil
@@ -30,17 +30,25 @@ describe 'knife', knife: true, skip: !open_source? do
       context 'as an admin' do
         let(:requestor) { knife_admin }
 
-        it 'should succeed', :slow => !open_source? do
-          should have_outcome :status => 0, :stdout => /Uploaded 1 cookbook/
+        it 'should succeed' do
+          should have_outcome :status => 0, :stderr => /Uploaded 1 cookbook/
+        end
+      end
+      context 'as a normal user' do
+        let(:requestor) { knife_user }
+
+        it 'should succeed' do
+          should have_outcome :status => 0, :stderr => /Uploaded 1 cookbook/
         end
       end
 
-      # Only admin clients can upload cookbooks on Open Source Chef
-      context 'as a normal client', :platform => :open_source do
-        let(:requestor) { knife_user }
+      # clients can't upload cookbooks, only users can.
+      # TODO hopefully this is covered in cookbooks? If so, let's delete this one.and any similar?
+      context 'as a normal client' do
+        let(:requestor) { normal_client }
 
         it 'should fail', :authorization do
-          should have_outcome :status => 100, :stdout => /You are not allowed to take this action/
+          should have_outcome :status => 100, :stderr => /missing create permission/
         end
       end
 

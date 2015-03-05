@@ -22,9 +22,6 @@ require 'pedant/rspec/common_responses'
 require 'pedant/rspec/http_status_codes'
 
 # Temporary, until knife tests are activated for non-open-source platforms
-def open_source?
-  Pedant::Config.pedant_platform.class == Pedant::OpenSourcePlatform
-end
 
 module Pedant
   module RSpec
@@ -59,7 +56,7 @@ module Pedant
         let(:request_query_parameters){ nil } # This should be a string, like "foo=bar"
 
         # Pedant-created requestors:
-        let(:pedant_clients) { ([ platform.validator_client_name, platform.admin_client_name ] + pedant_created_clients).sort }
+        let(:pedant_clients) { ([ platform.validator_client_name ] + pedant_created_clients).sort }
         let(:pedant_created_clients) { platform.clients.reject(&:bogus?).map(&:name).sort }
         let(:pedant_users)   { (['admin'] + platform.users.map(&:name)).sort }
 
@@ -323,12 +320,6 @@ module Pedant
           not ruby?
         end
 
-        # Temporary until knife tests for non-open-source platforms are fixed
-        #def self.open_source?
-        #  Pedant::Config.pedant_platform.class == Pedant::OpenSourcePlatform
-        #end
-        #let(:open_source?) { self.class.open_source? }
-
         # Timestamp suffixes
         # Suffix unique between runs. Timestamp is generated once per pedant run
         shared(:pedant_suffix) { suffix_for_names.(platform.pedant_run_timestamp) }
@@ -436,12 +427,7 @@ module Pedant
           platform.server
         end
 
-        # Intelligently construct a complete API URL based on the
-        # pre-configured server and platform information.  URLs targeted for
-        # multi-tenant platforms (i.e. Hosted Chef) prepend
-        # "/organizations/#{org}" to the given path fragment, while
-        # single-tenant targeted URLs (i.e., Open Source Chef and Private
-        # Chef) do not.
+        # construct a complete API URL based on the pre-configured server information
         def api_url(path_fragment)
           platform.api_url(path_fragment)
         end
@@ -499,25 +485,24 @@ module Pedant
         ################################################################################
 
         # If these are referenced in before(:all) blocks, use shared() instead of let()
+        shared(:organization)     { platform.test_org }
+        shared(:org)              { platform.test_org.name }
+        # TODO look at how these are set up - is accurate?
         shared(:admin_user)       { platform.admin_user }
+        shared(:org_admin)        { platform.admin_user}
         shared(:normal_user)      { platform.non_admin_user }
 
-        # OSC FIXME: platform.bad_user is breaking OSC tests for some reason
-        # This is set to bad_client for now
-        shared(:outside_user)     { platform.bad_client }
+        shared(:outside_user)     { platform.bad_user}
 
+        # TODO no such thing - eliminate tests referring to it!
         shared(:admin_client)     { platform.admin_client }
+        # TODO all non-validator clients are normal clients.
         shared(:normal_client)    { platform.non_admin_client }
         shared(:outside_client)   { platform.bad_client }
         shared(:validator_client) { platform.validator_client }
 
-        # TODO: Pedant is currently configured to use the admin for the pedant_admin
-        # Since we run smoke tests against production systems, we don't actually want
-        # to create knife files against that. The solution is to make admin the superuser
-        # again and have a dedicated pedant_admin. This way, we can test knife against
-        # user credentials rather than client credentials.
-        shared(:knife_admin)      { admin_client }
-        shared(:knife_user)       { normal_user }
+        shared(:knife_admin)      {  admin_user }
+        shared(:knife_user)       { normal_user}
 
         # TODO: Ultimately, I'd like to see all access to the superuser go
         # away, and all tasks that require its use become methods on the
@@ -536,26 +521,6 @@ module Pedant
         # Need a well-formed yet invalid key for a requestor to test authentiction
         shared(:bogus_key) { platform.bogus_key }
         shared(:invalid_user) { Pedant::Requestor.new('invalid', bogus_key, bogus: true) }
-
-        # Use this when both admin user and admin client have the same behavior
-        def self.as_an_admin_requestor(&examples)
-          [:user, :client].each do |_requestor|
-            context "as an admin #{_requestor}" do
-              let(:requestor) { send "admin_#{_requestor}" }
-              instance_eval(&examples)
-            end
-          end
-        end
-
-        # Use this when both admin user and admin client have the same behavior
-        def self.as_a_normal_requestor(&examples)
-          [:user, :client].each do |_requestor|
-            context "as a normal #{_requestor}" do
-              let(:requestor) { send "normal_#{_requestor}" }
-              instance_eval(&examples)
-            end
-          end
-        end
 
         ################################################################################
         # Test Context Helpers

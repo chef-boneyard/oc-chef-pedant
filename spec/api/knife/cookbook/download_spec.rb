@@ -16,12 +16,12 @@
 require 'pedant/rspec/knife_util'
 require 'pedant/rspec/cookbook_util'
 
-describe 'knife', knife: true, skip: !open_source? do
+describe 'knife', :knife do
   context 'cookbook' do
     context 'download' do
       include Pedant::RSpec::KnifeUtil
       include Pedant::RSpec::CookbookUtil
-
+      let(:cookbook_url_base) { "cookbooks" }
       let(:command) { "knife cookbook download #{cookbook_name} -c #{knife_config}" }
       let(:cwd) { downloaded_cookbook_dir }
       let(:downloaded_cookbook_dir) { knife_fixture "cookbooks" }
@@ -42,21 +42,17 @@ describe 'knife', knife: true, skip: !open_source? do
       context 'as an admin' do
         let(:requestor) { knife_admin }
 
-        it 'should succeed', :slow => !open_source? do
-          should have_outcome :status => 0, :stdout => /Cookbook downloaded to.*#{cookbook_name}/
+        it 'should succeed' do
+          should have_outcome :status => 0, :stderr => /Cookbook downloaded to.*#{cookbook_name}/
         end
       end
 
-      # Only admin clients can upload cookbooks on Open Source Chef
-      # However, normal clients can still download cookbooks
-      context 'as a normal client', :platform => :open_source do
+      context 'as a normal user' do
         let(:requestor) { knife_user }
-
-        it 'should fail', :authorization do
-          should have_outcome :status => 0, :stdout => /Cookbook downloaded to.*#{cookbook_name}/
+        it 'should succeed' do
+          should have_outcome :status => 0, :stderr => /Cookbook downloaded to.*#{cookbook_name}/
         end
       end
-
     end
   end
 end

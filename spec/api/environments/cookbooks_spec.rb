@@ -26,12 +26,13 @@ describe "/environments/ENVIRONMENT/cookbooks API endpoint", :environments, :coo
   # Cookbook tests are parameterized to support common testing of both
   # /cookbooks and /cookbook_artifacts, so we need to specify that we want to
   # talk to /cookbooks
-  let(:cookbook_url_base) { "cookbooks" }
 
+  let(:cookbook_url_base) { "cookbooks" }
   let(:request_method)   { :GET }
   let(:request_url)      { api_url "/environments/#{environment_name}/cookbooks" }
   let(:requestor)        { admin_user }
   let(:environment_name) { env }
+
 
   include_context "environment_body_util" # from EnvironmentUtil
 
