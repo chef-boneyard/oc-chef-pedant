@@ -72,7 +72,7 @@ describe 'Search API endpoint', :search do
 
       test_bad_partial_search_bodies
 
-      can_perform_a_partial_search_that_is_filtered_for :environment
+      can_perform_a_partial_search_that_is_acl_filtered_for :environment
 
       can_perform_basic_partial_search_for(:environment,
                                            :default_attributes,
@@ -126,7 +126,7 @@ describe 'Search API endpoint', :search do
                                            :attribute_path => ["top", "middle", "bottom"],
                                            :smoke => true)
 
-      can_perform_a_partial_search_that_is_filtered_for :node
+      can_perform_a_partial_search_that_is_acl_filtered_for :node
 
       # Node Attribute Priority Tests
       #
@@ -296,7 +296,7 @@ describe 'Search API endpoint', :search do
 
       test_bad_partial_search_bodies
 
-      can_perform_a_partial_search_that_is_filtered_for :role
+      can_perform_a_partial_search_that_is_acl_filtered_for :role
 
       can_perform_basic_partial_search_for(:role,
                                            :override_attributes,
