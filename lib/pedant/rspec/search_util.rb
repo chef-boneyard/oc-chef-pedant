@@ -105,7 +105,7 @@ module Pedant
 
         def can_perform_a_search_that_is_acl_filtered_for(object_type)
           valid_object_type?(object_type)
-          it "should return filtered results when ACL on #{object_type}s exist" do
+          it "should return filtered results when ACL on #{object_type}s exist", skip: !Pedant::Config.search_acls? do
             restrict_permissions_to "/#{object_type}s/#{base_object_name}_3",
                                     normal_user => ["delete"],
                                     admin_user => ["read"]
@@ -456,7 +456,7 @@ module Pedant
 
         def can_perform_a_partial_search_that_is_acl_filtered_for(object_type)
           valid_object_type? object_type
-          it "should return filtered results when ACLs exist" do
+          it "should return filtered results when ACLs exist", skip: !Pedant::Config.search_acls? do
             restrict_permissions_to "/#{object_type}s/#{base_object_name}_3",
                                     normal_user => ["delete"],
                                     admin_user => ["read"]
