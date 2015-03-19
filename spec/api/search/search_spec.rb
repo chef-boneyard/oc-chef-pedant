@@ -412,7 +412,7 @@ describe 'Search API endpoint', :search do
           end
         end
 
-        it "should return no results to an unauthorized user" do
+        it "should return no results to an unauthorized user", skip: !Pedant::Config.search_acls? do
           restrict_permissions_to "/data/#{data_bag_name}",
                                   normal_user => [],
                                   admin_user => ["read", "delete"]
